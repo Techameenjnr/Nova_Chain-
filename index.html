@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovaChain — The Currency Layer for the Autonomous Internet</title>
+<meta name="description" content="NovaChain ($NOVA) is the AI-native settlement layer powering agents, creators, developers and communities.">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='26' y2='26'%3E%3Cstop offset='0%25' stop-color='%2340e0ff'/%3E%3Cstop offset='100%25' stop-color='%236e5bff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='26' height='26' rx='6' fill='%23050810'/%3E%3Cpath d='M13 3 L22 8 V18 L13 23 L4 18 V8 Z' stroke='url(%23g)' stroke-width='1.8' fill='none'/%3E%3Ccircle cx='13' cy='13' r='3' fill='url(%23g)'/%3E%3C/svg%3E">
+
+<meta property="og:title" content="NovaChain — The Currency Layer for the Autonomous Internet">
+<meta property="og:description" content="NovaChain ($NOVA) is the AI-native settlement layer powering agents, creators, developers and communities.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="NovaChain — The Currency Layer for the Autonomous Internet">
+<meta name="twitter:description" content="NovaChain ($NOVA) is the AI-native settlement layer powering agents, creators, developers and communities.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg: #050810;
+    --bg-2: #070b16;
+    --panel: rgba(255,255,255,0.035);
+    --panel-border: rgba(255,255,255,0.08);
+    --deep-blue: #0a1f52;
+    --blue: #2f6fed;
+    --violet: #6e5bff;
+    --cyan: #40e0ff;
+    --text: #eef1fb;
+    --text-dim: #99a3c4;
+    --text-dimmer: #626b8c;
+    --radius: 16px;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; }
+
+  :focus-visible{
+    outline: 2px solid var(--cyan);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  .skip-link{
+    position:fixed; top:-100px; left:16px; z-index:10000;
+    background: var(--cyan); color:#020308;
+    padding:12px 20px; border-radius:10px;
+    font-weight:600; font-size:14px;
+    transition: top .25s var(--ease);
+  }
+  .skip-link:focus{ top:16px; }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+  }
+
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family:'Inter', sans-serif;
+    line-height:1.5;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  ::selection{ background: var(--blue); color:#fff; }
+
+  h1,h2,h3,h4{ font-family:'Space Grotesk', sans-serif; font-weight:600; letter-spacing:-0.02em; }
+
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+
+  a{ color:inherit; text-decoration:none; }
+
+  img, svg{ display:block; max-width:100%; }
+
+  .container{
+    max-width:1240px;
+    margin:0 auto;
+    padding:0 32px;
+  }
+
+  /* ============ Loading screen ============ */
+  #loader{
+    position:fixed; inset:0; z-index:9999;
+    background: var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    flex-direction:column;
+    gap:20px;
+    transition: opacity .7s var(--ease), visibility .7s var(--ease);
+  }
+  #loader.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+  .loader-mark{
+    width:42px; height:42px;
+    position:relative;
+  }
+  .loader-mark svg{ width:100%; height:100%; }
+  .loader-ring{
+    fill:none; stroke:url(#loaderGrad); stroke-width:2.4;
+    stroke-dasharray: 130; stroke-dashoffset:130;
+    animation: drawRing 1.4s var(--ease) infinite;
+    transform-origin:center;
+  }
+  @keyframes drawRing{
+    0%{ stroke-dashoffset:130; transform:rotate(0deg); }
+    50%{ stroke-dashoffset:20; }
+    100%{ stroke-dashoffset:130; transform:rotate(360deg); }
+  }
+  .loader-text{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.2em;
+    color: var(--text-dimmer);
+    text-transform:uppercase;
+  }
+
+  /* ============ Cursor glow ============ */
+  #cursor-glow{
+    position:fixed;
+    width:520px; height:520px;
+    border-radius:50%;
+    pointer-events:none;
+    z-index:2;
+    background: radial-gradient(circle, rgba(47,111,237,0.14) 0%, rgba(110,91,255,0.06) 40%, transparent 70%);
+    transform: translate(-50%,-50%);
+    left:-1000px; top:-1000px;
+    transition: opacity .3s ease;
+    will-change: left, top;
+  }
+
+  /* ============ Background particles ============ */
+  #particle-canvas{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+  }
+
+  .bg-gradient{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(ellipse 900px 600px at 15% -5%, rgba(47,111,237,0.20), transparent 60%),
+      radial-gradient(ellipse 800px 700px at 90% 10%, rgba(110,91,255,0.14), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 50% 100%, rgba(64,224,255,0.08), transparent 60%);
+  }
+
+  /* ============ Nav ============ */
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:1000;
+    padding:18px 0;
+    transition: background .4s ease, border-color .4s ease, padding .4s ease;
+    border-bottom:1px solid transparent;
+  }
+  header.scrolled{
+    background: rgba(5,8,16,0.72);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border-bottom:1px solid var(--panel-border);
+    padding:14px 0;
+  }
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .logo{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600; font-size:18px;
+    letter-spacing:-0.01em;
+  }
+  .logo-mark{
+    width:26px; height:26px;
+  }
+  .logo-mark svg{ width:100%; height:100%; }
+
+  .nav-links{
+    display:flex; align-items:center; gap:36px;
+    list-style:none;
+  }
+  .nav-links a{
+    font-size:14.5px; color: var(--text-dim);
+    transition: color .25s ease;
+    position:relative;
+  }
+  .nav-links a:not(.btn)::after{
+    content:''; position:absolute; left:0; bottom:-4px;
+    width:0; height:1px; background: var(--cyan);
+    transition: width .25s var(--ease);
+  }
+  .nav-links a:not(.btn):hover{ color: var(--text); }
+  .nav-links a:not(.btn):hover::after{ width:100%; }
+
+  .nav-cta{ display:flex; align-items:center; gap:16px; }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    font-family:'Inter', sans-serif;
+    font-weight:600; font-size:14.5px;
+    padding:11px 22px;
+    border-radius:10px;
+    cursor:pointer;
+    border:1px solid transparent;
+    transition: transform .3s var(--ease), box-shadow .3s var(--ease), background .3s ease, border-color .3s ease;
+    white-space:nowrap;
+  }
+  .btn-primary{
+    background: linear-gradient(135deg, var(--blue), var(--violet));
+    color:#fff;
+    box-shadow: 0 0 0 rgba(47,111,237,0);
+  }
+  .btn-primary:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(47,111,237,0.4);
+  }
+  .btn-ghost{
+    background: rgba(255,255,255,0.03);
+    border-color: var(--panel-border);
+    color: var(--text);
+  }
+  .btn-ghost:hover{
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.18);
+    transform: translateY(-2px);
+  }
+  .btn-sm{ padding:9px 18px; font-size:13.5px; }
+
+  .menu-toggle{
+    display:none;
+    width:22px; height:16px;
+    position:relative;
+    cursor:pointer;
+    background:none; border:none;
+  }
+  .menu-toggle span{
+    position:absolute; left:0; width:100%; height:1.5px;
+    background: var(--text);
+    transition: all .3s var(--ease);
+  }
+  .menu-toggle span:nth-child(1){ top:0; }
+  .menu-toggle span:nth-child(2){ top:7px; }
+  .menu-toggle span:nth-child(3){ top:14px; }
+  .menu-toggle.open span:nth-child(1){ transform: translateY(7px) rotate(45deg); }
+  .menu-toggle.open span:nth-child(2){ opacity:0; }
+  .menu-toggle.open span:nth-child(3){ transform: translateY(-7px) rotate(-45deg); }
+
+  /* ============ Section basics ============ */
+  section{ position:relative; z-index:1; }
+  .section-pad{ padding:140px 0; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px; letter-spacing:0.18em; text-transform:uppercase;
+    color: var(--cyan);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:18px;
+  }
+  .eyebrow::before{
+    content:''; width:6px; height:6px; border-radius:50%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+  }
+  .section-head{ max-width:640px; margin-bottom:64px; }
+  .section-head h2{ font-size:clamp(28px, 4vw, 42px); line-height:1.15; margin-bottom:16px; }
+  .section-head p{ color: var(--text-dim); font-size:16.5px; }
+
+  .reveal{
+    opacity:0; transform: translateY(28px);
+    transition: opacity .9s var(--ease), transform .9s var(--ease);
+  }
+  .reveal.in{ opacity:1; transform:none; }
+
+  /* ============ Hero ============ */
+  .hero{
+    min-height:100vh;
+    display:flex; align-items:center;
+    padding-top:160px; padding-bottom:100px;
+    position:relative;
+  }
+  .hero-inner{
+    display:grid; grid-template-columns: 1.05fr 0.95fr; gap:40px; align-items:center;
+  }
+  .hero-badge{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:7px 14px 7px 8px;
+    border-radius:100px;
+    background: var(--panel);
+    border:1px solid var(--panel-border);
+    font-size:13px; color: var(--text-dim);
+    margin-bottom:28px;
+  }
+  .hero-badge .dot{
+    width:16px; height:16px; border-radius:50%;
+    background: linear-gradient(135deg, var(--blue), var(--violet));
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:700; color:#fff;
+  }
+  .hero-microcopy{
+    font-size:12.5px; color: var(--text-dimmer);
+    margin-top:14px; margin-bottom:34px;
+  }
+  .hero h1{
+    font-size:clamp(38px, 5.2vw, 68px);
+    line-height:1.05;
+    margin-bottom:24px;
+  }
+  .hero h1 .grad{
+    background: linear-gradient(135deg, #fff 20%, var(--cyan) 60%, var(--violet) 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero p.sub{
+    font-size:18px; color: var(--text-dim);
+    max-width:520px; margin-bottom:38px;
+  }
+  .hero-actions{ display:flex; gap:16px; flex-wrap:wrap; margin-bottom:0; }
+  .hero-stats{
+    display:flex; gap:36px; flex-wrap:wrap;
+  }
+  .hero-stat{ }
+  .hero-stat .num{
+    font-family:'Space Grotesk', sans-serif; font-size:24px; font-weight:600;
+  }
+  .hero-stat .label{ font-size:13px; color: var(--text-dimmer); margin-top:2px; }
+
+  /* Network visualization */
+  .hero-visual{
+    position:relative;
+    aspect-ratio: 1/1;
+    max-width:560px;
+    margin:0 auto;
+  }
+  #network-canvas{
+    width:100%; height:100%;
+    border-radius:24px;
+  }
+  .visual-frame{
+    position:absolute; inset:0;
+    border-radius:24px;
+    border:1px solid var(--panel-border);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    pointer-events:none;
+  }
+  .visual-glow{
+    position:absolute; inset:-60px; z-index:-1;
+    background: radial-gradient(circle at center, rgba(47,111,237,0.25), transparent 65%);
+    filter: blur(20px);
+  }
+
+  /* ============ Trust bar ============ */
+  .trust-bar{
+    padding:36px 0;
+    border-top:1px solid var(--panel-border);
+    border-bottom:1px solid var(--panel-border);
+  }
+  .trust-bar-inner{
+    display:flex; align-items:center; gap:40px;
+    flex-wrap:wrap;
+  }
+  .trust-bar-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px; letter-spacing:0.1em; text-transform:uppercase;
+    color: var(--text-dimmer);
+    flex-shrink:0;
+  }
+  .trust-logos{
+    display:flex; align-items:center; gap:36px;
+    flex-wrap:wrap;
+    flex:1;
+  }
+  .trust-logo{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:16.5px; font-weight:600;
+    color: var(--text-dimmer);
+    opacity:0.65;
+    transition: opacity .3s ease, color .3s ease;
+    letter-spacing:-0.01em;
+    white-space:nowrap;
+  }
+  .trust-logo:hover{ opacity:1; color: var(--text-dim); }
+
+  /* ============ Metrics ============ */
+  .metrics{
+    padding:80px 0;
+    border-top:1px solid var(--panel-border);
+    border-bottom:1px solid var(--panel-border);
+  }
+  .metrics-grid{
+    display:grid; grid-template-columns: repeat(4, 1fr); gap:32px;
+  }
+  .metric{ text-align:left; }
+  .metric .value{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:clamp(30px, 3.4vw, 44px);
+    font-weight:600;
+    background: linear-gradient(135deg, #fff, var(--cyan));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .metric .label{
+    color: var(--text-dim); font-size:14px; margin-top:8px;
+  }
+
+  /* ============ Cards ============ */
+  .grid-4{ display:grid; grid-template-columns: repeat(4, 1fr); gap:24px; }
+  .grid-2{ display:grid; grid-template-columns: repeat(2, 1fr); gap:24px; }
+
+  .card{
+    background: var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius: var(--radius);
+    padding:32px 28px;
+    position:relative;
+    overflow:hidden;
+    transition: transform .4s var(--ease), border-color .4s ease, background .4s ease;
+  }
+  .card::before{
+    content:''; position:absolute; inset:0;
+    background: radial-gradient(400px circle at var(--mx,50%) var(--my,0%), rgba(47,111,237,0.12), transparent 60%);
+    opacity:0; transition: opacity .4s ease;
+    pointer-events:none;
+  }
+  .card:hover{
+    transform: translateY(-6px);
+    border-color: rgba(110,140,255,0.3);
+    background: rgba(255,255,255,0.05);
+  }
+  .card:hover::before{ opacity:1; }
+
+  .card-icon{
+    width:44px; height:44px;
+    border-radius:12px;
+    background: linear-gradient(135deg, rgba(47,111,237,0.25), rgba(110,91,255,0.2));
+    border:1px solid rgba(255,255,255,0.1);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:22px;
+  }
+  .card-icon svg{ width:22px; height:22px; stroke: var(--cyan); }
+  .card h3{ font-size:19px; margin-bottom:10px; }
+  .card p{ color: var(--text-dim); font-size:14.5px; }
+
+  /* ============ Code showcase ============ */
+  .code-wrap{
+    display:grid; grid-template-columns: 0.85fr 1.15fr; gap:56px; align-items:center;
+  }
+  .code-window{
+    background: #060911;
+    border:1px solid var(--panel-border);
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+  }
+  .code-titlebar{
+    display:flex; align-items:center; gap:8px;
+    padding:14px 18px;
+    border-bottom:1px solid var(--panel-border);
+    background: rgba(255,255,255,0.02);
+  }
+  .code-dot{ width:10px; height:10px; border-radius:50%; }
+  .code-titlebar .filename{
+    margin-left:10px; font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px; color: var(--text-dimmer);
+  }
+  .code-body{
+    padding:22px 24px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px; line-height:1.85;
+    overflow-x:auto;
+  }
+  .code-body .c-key{ color:#ff8fb8; }
+  .code-body .c-fn{ color:#40e0ff; }
+  .code-body .c-str{ color:#a3e635; }
+  .code-body .c-com{ color: var(--text-dimmer); }
+  .code-body .c-num{ color:#ffb86c; }
+  .code-body .c-var{ color: var(--text); }
+
+  .code-features{ display:flex; flex-direction:column; gap:28px; }
+  .code-feature{ display:flex; gap:18px; }
+  .code-feature .num-badge{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px; color: var(--cyan);
+    width:32px; height:32px; border-radius:9px;
+    background: rgba(64,224,255,0.08); border:1px solid rgba(64,224,255,0.2);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .code-feature h4{ font-size:16px; margin-bottom:6px; }
+  .code-feature p{ font-size:14px; color: var(--text-dim); }
+
+  /* ============ Ecosystem ============ */
+  .eco-card{
+    background: var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius: var(--radius);
+    padding:34px 28px;
+    cursor:pointer;
+    transition: all .4s var(--ease);
+    position:relative;
+  }
+  .eco-card .tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px; color: var(--text-dimmer);
+    letter-spacing:0.1em; text-transform:uppercase;
+    margin-bottom:14px; display:block;
+  }
+  .eco-card h3{ font-size:21px; margin-bottom:10px; }
+  .eco-card p{ color: var(--text-dim); font-size:14.5px; margin-bottom:18px; }
+  .eco-card .stat-line{
+    display:flex; justify-content:space-between;
+    padding-top:18px; border-top:1px solid var(--panel-border);
+    font-size:13px; color: var(--text-dimmer);
+  }
+  .eco-card .stat-line b{ color: var(--text); font-family:'IBM Plex Mono', monospace; font-weight:500; }
+  .eco-card:hover{
+    transform: translateY(-6px) scale(1.01);
+    border-color: rgba(110,140,255,0.35);
+    box-shadow: 0 20px 50px rgba(10,20,60,0.4);
+  }
+
+  /* ============ Tokenomics ============ */
+  .token-wrap{
+    display:grid; grid-template-columns: 0.9fr 1.1fr; gap:60px; align-items:center;
+  }
+  .token-ring{
+    position:relative;
+    width:100%; max-width:320px; aspect-ratio:1/1; margin:0 auto;
+  }
+  .token-ring svg{ width:100%; height:100%; transform: rotate(-90deg); }
+  .token-ring-center{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .token-ring-center .supply{ font-family:'Space Grotesk', sans-serif; font-size:28px; font-weight:600; }
+  .token-ring-center .label{ font-size:12px; color: var(--text-dimmer); margin-top:4px; }
+
+  .token-bars{ display:flex; flex-direction:column; gap:22px; }
+  .token-bar-row{ }
+  .token-bar-top{ display:flex; justify-content:space-between; margin-bottom:9px; font-size:14.5px; }
+  .token-bar-top .name{ display:flex; align-items:center; gap:10px; }
+  .token-bar-top .swatch{ width:10px; height:10px; border-radius:3px; }
+  .token-bar-top .pct{ font-family:'IBM Plex Mono', monospace; color: var(--text-dim); }
+  .token-bar-track{
+    height:8px; border-radius:6px;
+    background: rgba(255,255,255,0.06);
+    overflow:hidden;
+  }
+  .token-bar-fill{
+    height:100%; border-radius:6px;
+    width:0%;
+    transition: width 1.4s var(--ease);
+  }
+
+  /* ============ Roadmap ============ */
+  .roadmap-timeline{
+    position:relative;
+    padding-left:40px;
+  }
+  .roadmap-timeline::before{
+    content:''; position:absolute; left:9px; top:6px; bottom:6px;
+    width:1px; background: linear-gradient(180deg, var(--blue), var(--violet), transparent);
+  }
+  .roadmap-item{
+    position:relative;
+    padding-bottom:56px;
+  }
+  .roadmap-item:last-child{ padding-bottom:0; }
+  .roadmap-dot{
+    position:absolute; left:-40px; top:2px;
+    width:20px; height:20px; border-radius:50%;
+    background: var(--bg);
+    border:1px solid var(--panel-border);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .roadmap-dot::after{
+    content:''; width:8px; height:8px; border-radius:50%;
+    background: var(--text-dimmer);
+    transition: all .4s ease;
+  }
+  .roadmap-item.active .roadmap-dot::after{
+    background: var(--cyan);
+    box-shadow: 0 0 12px var(--cyan);
+  }
+  .roadmap-phase-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px; color: var(--text-dimmer);
+    letter-spacing:0.1em; text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  .roadmap-item.active .roadmap-phase-label{ color: var(--cyan); }
+  .roadmap-item h3{ font-size:21px; margin-bottom:10px; }
+  .roadmap-item p{ color: var(--text-dim); font-size:14.5px; max-width:560px; }
+  .roadmap-status{
+    display:inline-block; margin-top:14px;
+    font-family:'IBM Plex Mono', monospace; font-size:11px;
+    padding:4px 10px; border-radius:100px;
+    border:1px solid var(--panel-border);
+    color: var(--text-dimmer);
+  }
+  .roadmap-item.active .roadmap-status{
+    color: var(--cyan); border-color: rgba(64,224,255,0.3); background: rgba(64,224,255,0.06);
+  }
+
+  /* ============ Community ============ */
+  .community-grid{ display:grid; grid-template-columns: repeat(4,1fr); gap:24px; margin-bottom:48px; }
+  .community-card{
+    background: var(--panel); border:1px solid var(--panel-border);
+    border-radius: var(--radius); padding:28px;
+    text-align:left;
+    transition: all .35s var(--ease);
+  }
+  .community-card:hover{ transform: translateY(-4px); border-color: rgba(110,140,255,0.3); }
+  .community-card .icon{ width:28px; height:28px; margin-bottom:20px; stroke: var(--text); }
+  .community-card .count{ font-family:'Space Grotesk', sans-serif; font-size:26px; font-weight:600; margin-bottom:4px; }
+  .community-card .platform{ font-size:13.5px; color: var(--text-dimmer); }
+  .community-cta{ text-align:center; padding:56px 0 0; }
+  .community-cta p{ color: var(--text-dim); margin-bottom:24px; }
+
+  /* ============ FAQ ============ */
+  .faq-item{
+    border-bottom:1px solid var(--panel-border);
+  }
+  .faq-question{
+    display:flex; align-items:center; justify-content:space-between;
+    width:100%;
+    padding:26px 4px;
+    cursor:pointer;
+    font-size:16.5px; font-weight:500;
+    background:none; border:none; color: var(--text);
+    font-family:'Inter', sans-serif;
+    text-align:left;
+  }
+  .faq-question .icon{
+    width:18px; height:18px; position:relative; flex-shrink:0; margin-left:20px;
+  }
+  .faq-question .icon::before, .faq-question .icon::after{
+    content:''; position:absolute; background: var(--text-dim);
+    transition: transform .3s var(--ease), opacity .3s ease;
+  }
+  .faq-question .icon::before{ width:100%; height:1.5px; top:50%; left:0; transform:translateY(-50%); }
+  .faq-question .icon::after{ width:1.5px; height:100%; left:50%; top:0; transform:translateX(-50%); }
+  .faq-item.open .faq-question .icon::after{ transform: translateX(-50%) rotate(90deg); opacity:0; }
+  .faq-answer{
+    max-height:0; overflow:hidden;
+    transition: max-height .4s var(--ease);
+  }
+  .faq-answer-inner{
+    padding-bottom:26px; color: var(--text-dim); font-size:14.5px; max-width:680px;
+  }
+
+  /* ============ Footer ============ */
+  footer{
+    padding:80px 0 40px;
+    border-top:1px solid var(--panel-border);
+  }
+  .footer-top{
+    display:grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap:40px;
+    margin-bottom:60px;
+  }
+  .footer-brand p{ color: var(--text-dim); font-size:14px; margin-top:16px; max-width:280px; }
+  .footer-col h4{
+    font-size:13px; text-transform:uppercase; letter-spacing:0.08em;
+    color: var(--text-dimmer); margin-bottom:18px; font-weight:500;
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .footer-col ul{ list-style:none; display:flex; flex-direction:column; gap:12px; }
+  .footer-col a{ color: var(--text-dim); font-size:14.5px; transition: color .25s ease; }
+  .footer-col a:hover{ color: var(--text); }
+  .footer-bottom{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-top:32px; border-top:1px solid var(--panel-border);
+    flex-wrap:wrap; gap:20px;
+  }
+  .footer-social{ display:flex; gap:16px; }
+  .footer-social a{
+    width:36px; height:36px; border-radius:10px;
+    background: var(--panel); border:1px solid var(--panel-border);
+    display:flex; align-items:center; justify-content:center;
+    transition: all .25s ease;
+  }
+  .footer-social a:hover{ background: rgba(255,255,255,0.08); transform: translateY(-3px); }
+  .footer-social svg{ width:16px; height:16px; stroke: var(--text-dim); }
+  .disclaimer{
+    font-size:12.5px; color: var(--text-dimmer); max-width:900px; margin-top:28px; line-height:1.7;
+  }
+
+  /* ============ Back to top ============ */
+  #back-to-top{
+    position:fixed; bottom:28px; right:28px; z-index:500;
+    width:46px; height:46px; border-radius:50%;
+    background: rgba(10,14,26,0.8);
+    backdrop-filter: blur(10px);
+    border:1px solid var(--panel-border);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    opacity:0; visibility:hidden; transform: translateY(10px);
+    transition: all .35s var(--ease);
+  }
+  #back-to-top.show{ opacity:1; visibility:visible; transform:none; }
+  #back-to-top:hover{ background: rgba(47,111,237,0.2); border-color: rgba(110,140,255,0.4); }
+  #back-to-top svg{ width:18px; height:18px; stroke: var(--text); }
+
+  /* ============ Toast ============ */
+  #toast{
+    position:fixed; bottom:28px; left:50%; z-index:2000;
+    transform: translate(-50%, 20px);
+    background: rgba(12,16,28,0.95);
+    border:1px solid var(--panel-border);
+    backdrop-filter: blur(12px);
+    padding:14px 22px; border-radius:12px;
+    font-size:14px; color:var(--text);
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition: all .35s var(--ease);
+    display:flex; align-items:center; gap:10px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  }
+  #toast.show{ opacity:1; visibility:visible; transform: translate(-50%, 0); }
+  #toast .dot2{ width:8px; height:8px; border-radius:50%; background: var(--cyan); box-shadow:0 0 8px var(--cyan); flex-shrink:0; }
+
+  /* ============ Modal ============ */
+  .modal-overlay{
+    position:fixed; inset:0; z-index:3000;
+    background: rgba(3,5,12,0.75);
+    backdrop-filter: blur(6px);
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+    opacity:0; visibility:hidden;
+    transition: opacity .3s ease, visibility .3s ease;
+  }
+  .modal-overlay.show{ opacity:1; visibility:visible; }
+  .modal-box{
+    width:100%; max-width:480px;
+    max-height:85vh; overflow-y:auto;
+    background: linear-gradient(180deg, rgba(16,20,36,0.98), rgba(8,11,20,0.98));
+    border:1px solid var(--panel-border);
+    border-radius:20px;
+    padding:32px;
+    position:relative;
+    transform: translateY(16px) scale(0.98);
+    transition: transform .35s var(--ease);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  }
+  .modal-overlay.show .modal-box{ transform:none; }
+  .modal-close{
+    position:absolute; top:20px; right:20px;
+    width:32px; height:32px; border-radius:9px;
+    background: rgba(255,255,255,0.04);
+    border:1px solid var(--panel-border);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; color: var(--text-dim);
+    transition: all .2s ease;
+  }
+  .modal-close:hover{ background: rgba(255,255,255,0.09); color:var(--text); }
+  .modal-eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11px;
+    letter-spacing:0.15em; text-transform:uppercase; color: var(--cyan);
+    margin-bottom:12px;
+  }
+  .modal-box h3{ font-size:22px; margin-bottom:14px; padding-right:30px; }
+  .modal-box p{ color: var(--text-dim); font-size:14.5px; margin-bottom:20px; }
+
+  .app-preview{
+    background: rgba(255,255,255,0.03);
+    border:1px solid var(--panel-border);
+    border-radius:14px; padding:20px; margin-bottom:20px;
+  }
+  .app-preview-row{ display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--panel-border); font-size:14px; }
+  .app-preview-row:last-child{ border-bottom:none; }
+  .app-preview-row .k{ color: var(--text-dimmer); }
+  .app-preview-row .v{ font-family:'IBM Plex Mono', monospace; }
+  .wallet-status{
+    display:flex; align-items:center; gap:10px;
+    padding:14px 16px; border-radius:12px;
+    background: rgba(64,224,255,0.06);
+    border:1px solid rgba(64,224,255,0.2);
+    margin-bottom:20px; font-size:13.5px; color:var(--cyan);
+  }
+  .wallet-status .pulse-dot{
+    width:8px; height:8px; border-radius:50%; background:var(--cyan);
+    box-shadow:0 0 8px var(--cyan);
+    animation: pulseDot 1.6s ease-in-out infinite;
+  }
+  @keyframes pulseDot{ 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  .modal-links{ display:flex; flex-direction:column; gap:10px; }
+  .modal-link-item{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 16px; border-radius:12px;
+    background: rgba(255,255,255,0.03); border:1px solid var(--panel-border);
+    font-size:14.5px; transition: all .2s ease;
+  }
+  .modal-link-item:hover{ background: rgba(255,255,255,0.07); border-color: rgba(110,140,255,0.3); }
+  .modal-link-item .arrow{ color: var(--text-dimmer); font-family:'IBM Plex Mono', monospace; }
+
+  .toc-list{ display:flex; flex-direction:column; gap:0; }
+  .toc-item{
+    display:flex; justify-content:space-between;
+    padding:13px 0; border-bottom:1px solid var(--panel-border);
+    font-size:14px; color: var(--text-dim);
+  }
+  .toc-item:last-child{ border-bottom:none; }
+  .toc-item .n{ font-family:'IBM Plex Mono', monospace; color: var(--text-dimmer); margin-right:12px; }
+
+  /* ============ Responsive ============ */
+  @media (max-width: 980px){
+    .hero-inner{ grid-template-columns:1fr; }
+    .hero-visual{ order:-1; max-width:420px; }
+    .metrics-grid{ grid-template-columns: repeat(2,1fr); gap:36px 24px; }
+    .grid-4{ grid-template-columns: repeat(2,1fr); }
+    .token-wrap{ grid-template-columns:1fr; gap:48px; }
+    .community-grid{ grid-template-columns: repeat(2,1fr); }
+    .footer-top{ grid-template-columns: repeat(2,1fr); }
+    .code-wrap{ grid-template-columns:1fr; gap:40px; }
+    .code-wrap > div:first-child{ order:2; }
+  }
+
+  @media (max-width: 720px){
+    .nav-links{
+      position:fixed; top:64px; left:16px; right:16px;
+      background: rgba(8,11,20,0.97);
+      backdrop-filter: blur(20px);
+      border:1px solid var(--panel-border);
+      border-radius:16px;
+      flex-direction:column;
+      align-items:flex-start;
+      padding:24px;
+      gap:20px;
+      transform: translateY(-14px);
+      opacity:0; visibility:hidden;
+      transition: all .35s var(--ease);
+    }
+    .nav-links.open{ transform:none; opacity:1; visibility:visible; }
+    .nav-links .btn{ width:100%; justify-content:center; margin-top:8px; }
+    .menu-toggle{ display:block; }
+    .grid-4{ grid-template-columns:1fr; }
+    .grid-2{ grid-template-columns:1fr; }
+    .metrics-grid{ grid-template-columns:1fr; gap:32px; }
+    .footer-top{ grid-template-columns:1fr; gap:36px; }
+    .community-grid{ grid-template-columns:1fr; }
+    .section-pad{ padding:90px 0; }
+    #cursor-glow{ display:none; }
+    .hero-actions{ flex-direction:column; }
+    .hero-actions .btn{ width:100%; }
+    .hero-stats{ gap:24px; }
+    .trust-bar-inner{ flex-direction:column; align-items:flex-start; gap:18px; }
+    .trust-logos{ gap:22px 28px; }
+    .code-body{ font-size:12px; }
+  }
+</style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<!-- Loader -->
+<div id="loader">
+  <div class="loader-mark">
+    <svg viewBox="0 0 42 42">
+      <defs>
+        <linearGradient id="loaderGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#2f6fed"/>
+          <stop offset="100%" stop-color="#6e5bff"/>
+        </linearGradient>
+      </defs>
+      <circle class="loader-ring" cx="21" cy="21" r="18"/>
+    </svg>
+  </div>
+  <div class="loader-text">Establishing connection</div>
+</div>
+
+<div class="bg-gradient"></div>
+<canvas id="particle-canvas"></canvas>
+<div id="cursor-glow"></div>
+
+<!-- Header -->
+<header id="site-header">
+  <div class="container">
+    <nav>
+      <a href="#" class="logo">
+        <span class="logo-mark">
+          <svg viewBox="0 0 26 26" fill="none">
+            <defs>
+              <linearGradient id="navGrad" x1="0" y1="0" x2="26" y2="26">
+                <stop offset="0%" stop-color="#40e0ff"/>
+                <stop offset="100%" stop-color="#6e5bff"/>
+              </linearGradient>
+            </defs>
+            <path d="M13 2 L23 8 V18 L13 24 L3 18 V8 Z" stroke="url(#navGrad)" stroke-width="1.6"/>
+            <circle cx="13" cy="13" r="3.2" fill="url(#navGrad)"/>
+          </svg>
+        </span>
+        NovaChain
+      </a>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#technology">Technology</a></li>
+        <li><a href="#ecosystem">Ecosystem</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
+        <li><a href="#community">Community</a></li>
+        <li><a href="#" class="btn btn-primary btn-sm" data-open-modal="modal-app">Launch App</a></li>
+      </ul>
+      <div class="nav-cta">
+        <a href="#" class="btn btn-primary btn-sm" id="nav-launch" data-open-modal="modal-app">Launch App</a>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero" id="about" tabindex="-1">
+  <div class="container" id="main-content">
+    <div class="hero-inner">
+      <div class="hero-copy reveal">
+        <div class="hero-badge">
+          <span class="dot">✓</span>
+          $50M Series A · Led by tier-1 crypto funds
+        </div>
+        <h1>The Currency Layer for the <span class="grad">Autonomous Internet</span></h1>
+        <p class="sub">AI agents, creators, and businesses need a settlement layer that moves at machine speed. NovaChain gives them one — sub-second, sub-cent, and built to be held by code, not just people.</p>
+        <div class="hero-actions">
+          <a href="#" class="btn btn-primary" data-open-modal="modal-app">Launch App</a>
+          <a href="#" class="btn btn-ghost" data-open-modal="modal-whitepaper">Read Whitepaper</a>
+        </div>
+        <div class="hero-microcopy">No signup required to explore the demo · Testnet live now</div>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="num mono">2.1M</div><div class="label">TPS Capacity</div></div>
+          <div class="hero-stat"><div class="num mono">$0.0002</div><div class="label">Avg. Fee</div></div>
+          <div class="hero-stat"><div class="num mono">420ms</div><div class="label">Finality</div></div>
+        </div>
+      </div>
+      <div class="hero-visual reveal" aria-hidden="true">
+        <div class="visual-glow"></div>
+        <canvas id="network-canvas"></canvas>
+        <div class="visual-frame"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="trust-bar reveal">
+  <div class="container">
+    <div class="trust-bar-inner">
+      <span class="trust-bar-label">Backed by</span>
+      <div class="trust-logos">
+        <span class="trust-logo">Meridian Capital</span>
+        <span class="trust-logo">Northbridge Ventures</span>
+        <span class="trust-logo">Alloy Partners</span>
+        <span class="trust-logo">Fathom Fund</span>
+        <span class="trust-logo">Continuum</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Metrics -->
+<section class="metrics">
+  <div class="container">
+    <div class="metrics-grid">
+      <div class="metric reveal">
+        <div class="value" data-count="850" data-prefix="$" data-suffix="M">$0M</div>
+        <div class="label">Network Volume</div>
+      </div>
+      <div class="metric reveal">
+        <div class="value" data-count="120" data-suffix="K">0K</div>
+        <div class="label">Active Users</div>
+      </div>
+      <div class="metric reveal">
+        <div class="value" data-count="450" data-suffix="+">0+</div>
+        <div class="label">Integrations</div>
+      </div>
+      <div class="metric reveal">
+        <div class="value" data-count="99.99" data-suffix="%" data-decimal="2">0%</div>
+        <div class="label">Network Uptime</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Technology -->
+<section class="section-pad" id="technology">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Technology</div>
+      <h2>Built for a world where machines hold wallets too</h2>
+      <p>Four primitives most chains treat as afterthoughts — we built them into the base layer.</p>
+    </div>
+    <div class="grid-4">
+      <div class="card reveal">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></div>
+        <h3>AI-Native Infrastructure</h3>
+        <p>Purpose-built execution environments let autonomous agents hold keys, sign transactions and reason about balances natively.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg></div>
+        <h3>Instant Settlement</h3>
+        <p>Sub-second finality across the network means value moves as fast as the decisions that trigger it.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a4 4 0 0 1 8 0v2"/></svg></div>
+        <h3>Autonomous Payments</h3>
+        <p>Programmable spend limits and intent-based approvals let agents transact safely without constant human sign-off.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3>Community Governance</h3>
+        <p>Protocol upgrades, treasury allocation and fee parameters are directed by $NOVA holders on-chain.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Developer Showcase -->
+<section class="section-pad" style="border-top:1px solid var(--panel-border);">
+  <div class="container">
+    <div class="code-wrap">
+      <div class="reveal">
+        <div class="eyebrow">For Developers</div>
+        <h2 style="font-size:clamp(26px,3.4vw,36px); margin-bottom:16px;">Three lines to give any agent a wallet</h2>
+        <p style="color:var(--text-dim); font-size:16px; margin-bottom:36px;">The SDK handles key management, spend policies, and settlement — so you can focus on what your agent actually does.</p>
+        <div class="code-features">
+          <div class="code-feature">
+            <span class="num-badge">01</span>
+            <div><h4>Policy-scoped spending</h4><p>Cap what an agent can move, per transaction or per day, without holding its keys yourself.</p></div>
+          </div>
+          <div class="code-feature">
+            <span class="num-badge">02</span>
+            <div><h4>EVM-compatible</h4><p>Your existing Solidity contracts and tooling work here — no new language to learn.</p></div>
+          </div>
+          <div class="code-feature">
+            <span class="num-badge">03</span>
+            <div><h4>Testnet faucet included</h4><p>Get funded test tokens instantly and start building before mainnet integration.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="code-window">
+          <div class="code-titlebar">
+            <span class="code-dot" style="background:#ff5f57;"></span>
+            <span class="code-dot" style="background:#febc2e;"></span>
+            <span class="code-dot" style="background:#28c840;"></span>
+            <span class="filename">agent-wallet.ts</span>
+          </div>
+          <div class="code-body"><span class="c-key">import</span> { NovaAgent } <span class="c-key">from</span> <span class="c-str">'@novachain/sdk'</span>
+
+<span class="c-com">// Spin up a wallet scoped to this agent</span>
+<span class="c-key">const</span> <span class="c-var">agent</span> = <span class="c-key">new</span> <span class="c-fn">NovaAgent</span>({
+  <span class="c-var">network</span>: <span class="c-str">'mainnet'</span>,
+  <span class="c-var">policy</span>: {
+    <span class="c-var">maxPerTx</span>: <span class="c-num">50</span>,
+    <span class="c-var">dailyLimit</span>: <span class="c-num">500</span>
+  }
+});
+
+<span class="c-com">// Agent pays for an API call autonomously</span>
+<span class="c-key">await</span> <span class="c-var">agent</span>.<span class="c-fn">pay</span>({
+  <span class="c-var">to</span>: <span class="c-str">'0x9f2...4a1'</span>,
+  <span class="c-var">amount</span>: <span class="c-num">2.5</span>,
+  <span class="c-var">memo</span>: <span class="c-str">'inference-call'</span>
+});</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Ecosystem -->
+<section class="section-pad" id="ecosystem" style="border-top:1px solid var(--panel-border);">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Ecosystem</div>
+      <h2>Every participant, one settlement layer</h2>
+      <p>Whether it's a person or an autonomous agent initiating the transaction, it settles the same way: fast, cheap, and final.</p>
+    </div>
+    <div class="grid-2">
+      <div class="eco-card reveal">
+        <span class="tag">For Builders</span>
+        <h3>Developers</h3>
+        <p>Ship agent-ready smart contracts with a familiar EVM-compatible toolchain and a growing SDK for machine-to-machine payments.</p>
+        <div class="stat-line"><span>Active repos</span><b>18,400+</b></div>
+      </div>
+      <div class="eco-card reveal">
+        <span class="tag">For Autonomy</span>
+        <h3>AI Agents</h3>
+        <p>Give any agent a wallet, a spending policy and a settlement rail — no human in the loop for routine transactions.</p>
+        <div class="stat-line"><span>Agents onboarded</span><b>62,000+</b></div>
+      </div>
+      <div class="eco-card reveal">
+        <span class="tag">For Commerce</span>
+        <h3>Businesses</h3>
+        <p>Accept and route payments from both people and autonomous systems through a single, compliant settlement layer.</p>
+        <div class="stat-line"><span>Merchants live</span><b>7,300+</b></div>
+      </div>
+      <div class="eco-card reveal">
+        <span class="tag">For Creators</span>
+        <h3>Creators</h3>
+        <p>Monetize work directly, program royalties into every resale, and get paid the moment your content is used.</p>
+        <div class="stat-line"><span>Creators paid out</span><b>$42M+</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Tokenomics -->
+<section class="section-pad" style="border-top:1px solid var(--panel-border);">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Tokenomics</div>
+      <h2>$NOVA supply and allocation</h2>
+      <p>A fixed supply designed to align long-term network growth with the people and agents that use it.</p>
+    </div>
+    <div class="token-wrap">
+      <div class="token-ring reveal">
+        <svg viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="86" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="16"/>
+          <circle class="ring-seg" data-pct="40" cx="100" cy="100" r="86" fill="none" stroke="#40e0ff" stroke-width="16" stroke-linecap="round" stroke-dasharray="540.35" stroke-dashoffset="540.35"/>
+          <circle class="ring-seg" data-pct="25" cx="100" cy="100" r="86" fill="none" stroke="#2f6fed" stroke-width="16" stroke-linecap="round" stroke-dasharray="540.35" stroke-dashoffset="540.35"/>
+          <circle class="ring-seg" data-pct="20" cx="100" cy="100" r="86" fill="none" stroke="#6e5bff" stroke-width="16" stroke-linecap="round" stroke-dasharray="540.35" stroke-dashoffset="540.35"/>
+          <circle class="ring-seg" data-pct="15" cx="100" cy="100" r="86" fill="none" stroke="#9b7bff" stroke-width="16" stroke-linecap="round" stroke-dasharray="540.35" stroke-dashoffset="540.35"/>
+        </svg>
+        <div class="token-ring-center">
+          <div class="supply mono">1B</div>
+          <div class="label">Total Supply</div>
+        </div>
+      </div>
+      <div class="token-bars reveal">
+        <div class="token-bar-row">
+          <div class="token-bar-top"><span class="name"><span class="swatch" style="background:#40e0ff;"></span>Community Allocation</span><span class="pct">40%</span></div>
+          <div class="token-bar-track"><div class="token-bar-fill" data-pct="40" style="background:#40e0ff;"></div></div>
+        </div>
+        <div class="token-bar-row">
+          <div class="token-bar-top"><span class="name"><span class="swatch" style="background:#2f6fed;"></span>Ecosystem Fund</span><span class="pct">25%</span></div>
+          <div class="token-bar-track"><div class="token-bar-fill" data-pct="25" style="background:#2f6fed;"></div></div>
+        </div>
+        <div class="token-bar-row">
+          <div class="token-bar-top"><span class="name"><span class="swatch" style="background:#6e5bff;"></span>Treasury</span><span class="pct">20%</span></div>
+          <div class="token-bar-track"><div class="token-bar-fill" data-pct="20" style="background:#6e5bff;"></div></div>
+        </div>
+        <div class="token-bar-row">
+          <div class="token-bar-top"><span class="name"><span class="swatch" style="background:#9b7bff;"></span>Team</span><span class="pct">15%</span></div>
+          <div class="token-bar-track"><div class="token-bar-fill" data-pct="15" style="background:#9b7bff;"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Roadmap -->
+<section class="section-pad" id="roadmap" style="border-top:1px solid var(--panel-border);">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Roadmap</div>
+      <h2>Where the network is headed</h2>
+      <p>Four phases from mainnet foundation to a fully agent-driven global economy.</p>
+    </div>
+    <div class="roadmap-timeline">
+      <div class="roadmap-item active reveal">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-phase-label">Phase 01</div>
+        <h3>Foundation</h3>
+        <p>Mainnet launch, core protocol audits, initial validator set and the first wave of developer tooling.</p>
+        <span class="roadmap-status">Completed</span>
+      </div>
+      <div class="roadmap-item active reveal">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-phase-label">Phase 02</div>
+        <h3>Network Growth</h3>
+        <p>Exchange listings, liquidity incentives, and onboarding of the first major merchant and creator partners.</p>
+        <span class="roadmap-status">In Progress</span>
+      </div>
+      <div class="roadmap-item reveal">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-phase-label">Phase 03</div>
+        <h3>Agent Economy</h3>
+        <p>Native agent wallets, autonomous spending policies, and the launch of the machine-to-machine payments SDK.</p>
+        <span class="roadmap-status">Upcoming</span>
+      </div>
+      <div class="roadmap-item reveal">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-phase-label">Phase 04</div>
+        <h3>Global Expansion</h3>
+        <p>Regional compliance frameworks, enterprise settlement partnerships, and full governance handover to the community.</p>
+        <span class="roadmap-status">Upcoming</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Community -->
+<section class="section-pad" id="community" style="border-top:1px solid var(--panel-border);">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">Community</div>
+      <h2>Join the people building the network</h2>
+      <p>NovaChain is shaped in the open, across every channel we ship in.</p>
+    </div>
+    <div class="community-grid">
+      <div class="community-card reveal" data-open-modal="modal-community" style="cursor:pointer;">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-3.3-6.4"/><path d="M15 3v5h5"/></svg>
+        <div class="count mono">184K</div>
+        <div class="platform">Discord Members</div>
+      </div>
+      <div class="community-card reveal" data-open-modal="modal-community" style="cursor:pointer;">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l16 16M20 4L4 20"/></svg>
+        <div class="count mono">312K</div>
+        <div class="platform">Followers on X</div>
+      </div>
+      <div class="community-card reveal" data-open-modal="modal-community" style="cursor:pointer;">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+        <div class="count mono">96K</div>
+        <div class="platform">Telegram Members</div>
+      </div>
+      <div class="community-card reveal" data-open-modal="modal-community" style="cursor:pointer;">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.9a3.9 3.9 0 0 0-1.1-3c3.1-.4 6.3-1.6 6.3-7A5.4 5.4 0 0 0 20 4.8 5 5 0 0 0 19.9.6S18.7.2 16 2a13.4 13.4 0 0 0-7 0C6.3.2 5.1.6 5.1.6A5 5 0 0 0 5 4.8a5.4 5.4 0 0 0-1.5 3.7c0 5.4 3.2 6.6 6.3 7A3.9 3.9 0 0 0 8.7 18v3.9"/></svg>
+        <div class="count mono">21.8K</div>
+        <div class="platform">GitHub Stars</div>
+      </div>
+    </div>
+    <div class="community-cta reveal">
+      <p>Come build the autonomous economy with us.</p>
+      <a href="#" class="btn btn-primary" data-open-modal="modal-community">Join Community</a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section-pad" style="border-top:1px solid var(--panel-border);">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">FAQ</div>
+      <h2>Common questions</h2>
+    </div>
+    <div id="faq-list" style="max-width:820px;">
+      <div class="faq-item reveal">
+        <button class="faq-question" aria-expanded="false"><span>What makes NovaChain "AI-native"?</span><span class="icon" aria-hidden="true"></span></button>
+        <div class="faq-answer"><div class="faq-answer-inner">The protocol layer is designed around autonomous agents as first-class participants — with native wallet primitives, spending policies, and intent-based transaction signing built into the base chain rather than added on top.</div></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-question" aria-expanded="false"><span>How fast is settlement on NovaChain?</span><span class="icon" aria-hidden="true"></span></button>
+        <div class="faq-answer"><div class="faq-answer-inner">Transactions reach finality in around 420 milliseconds on average, with a theoretical network capacity of over 2.1 million transactions per second.</div></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-question" aria-expanded="false"><span>Is $NOVA available to trade yet?</span><span class="icon" aria-hidden="true"></span></button>
+        <div class="faq-answer"><div class="faq-answer-inner">$NOVA is live on mainnet and listed across major exchanges. Always verify contract addresses through official NovaChain channels before trading.</div></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-question" aria-expanded="false"><span>How is the network governed?</span><span class="icon" aria-hidden="true"></span></button>
+        <div class="faq-answer"><div class="faq-answer-inner">$NOVA holders vote on protocol upgrades, treasury spend, and fee parameters directly on-chain through the NovaChain governance module.</div></div>
+      </div>
+      <div class="faq-item reveal">
+        <button class="faq-question" aria-expanded="false"><span>Can developers build on NovaChain today?</span><span class="icon" aria-hidden="true"></span></button>
+        <div class="faq-answer"><div class="faq-answer-inner">Yes. NovaChain is EVM-compatible and ships with an SDK, testnet faucet, and documentation for building both standard contracts and agent-ready payment flows.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#" class="logo">
+          <span class="logo-mark">
+            <svg viewBox="0 0 26 26" fill="none">
+              <path d="M13 2 L23 8 V18 L13 24 L3 18 V8 Z" stroke="url(#navGrad)" stroke-width="1.6"/>
+              <circle cx="13" cy="13" r="3.2" fill="url(#navGrad)"/>
+            </svg>
+          </span>
+          NovaChain
+        </a>
+        <p>The currency layer for the autonomous internet. Built for agents, creators, developers and communities.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#technology">Technology</a></li>
+          <li><a href="#ecosystem">Ecosystem</a></li>
+          <li><a href="#" data-open-modal="modal-whitepaper">Whitepaper</a></li>
+          <li><a href="#" data-demo-link>Documentation</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#about">About</a></li>
+          <li><a href="#roadmap">Roadmap</a></li>
+          <li><a href="#" data-demo-link>Careers</a></li>
+          <li><a href="#" data-demo-link>Brand Kit</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="#" data-demo-link>Blog</a></li>
+          <li><a href="#" data-demo-link>Security</a></li>
+          <li><a href="#community">Community</a></li>
+          <li><a href="#" data-demo-link>Support</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="mono" style="font-size:13px; color:var(--text-dimmer);">© 2026 NovaChain Foundation. All rights reserved.</div>
+      <div class="footer-social">
+        <a href="#" aria-label="X" data-open-modal="modal-community"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 4l16 16M20 4L4 20"/></svg></a>
+        <a href="#" aria-label="Discord" data-open-modal="modal-community"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-3.3-6.4"/></svg></a>
+        <a href="#" aria-label="Telegram" data-open-modal="modal-community"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg></a>
+        <a href="#" aria-label="GitHub" data-open-modal="modal-community"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.9a3.9 3.9 0 0 0-1.1-3c3.1-.4 6.3-1.6 6.3-7A5.4 5.4 0 0 0 20 4.8 5 5 0 0 0 19.9.6S18.7.2 16 2a13.4 13.4 0 0 0-7 0C6.3.2 5.1.6 5.1.6A5 5 0 0 0 5 4.8a5.4 5.4 0 0 0-1.5 3.7c0 5.4 3.2 6.6 6.3 7A3.9 3.9 0 0 0 8.7 18v3.9"/></svg></a>
+      </div>
+    </div>
+    <p class="disclaimer">NovaChain and $NOVA are fictional and used for demonstration purposes only. This page does not represent a real cryptocurrency, security, or investment offering. Nothing here constitutes financial advice. Digital assets are volatile and carry risk of loss; always do your own research before engaging with any real-world crypto product.</p>
+  </div>
+</footer>
+
+<button id="back-to-top" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+
+<div id="toast">
+  <span class="dot2"></span>
+  <span id="toast-text">Copied to clipboard</span>
+</div>
+
+<!-- Launch App Modal -->
+<div class="modal-overlay" id="modal-app">
+  <div class="modal-box">
+    <div class="modal-close" data-close-modal>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </div>
+    <div class="modal-eyebrow">Demo Environment</div>
+    <h3>NovaChain App</h3>
+    <div class="wallet-status">
+      <span class="pulse-dot"></span>
+      Wallet connected — demo.nova.eth
+    </div>
+    <p>This is a demo pitch build, so no real wallet or funds are involved. Here's what a connected dashboard looks like on NovaChain:</p>
+    <div class="app-preview">
+      <div class="app-preview-row"><span class="k">$NOVA Balance</span><span class="v">12,480.00</span></div>
+      <div class="app-preview-row"><span class="k">Network</span><span class="v">NovaChain Mainnet</span></div>
+      <div class="app-preview-row"><span class="k">Est. Settlement</span><span class="v">~420ms</span></div>
+      <div class="app-preview-row"><span class="k">Agent Policies</span><span class="v">2 active</span></div>
+    </div>
+    <p style="margin-bottom:0; font-size:13px;">In production, this screen would let you send $NOVA, deploy an agent wallet, and set spending policies.</p>
+  </div>
+</div>
+
+<!-- Whitepaper Modal -->
+<div class="modal-overlay" id="modal-whitepaper">
+  <div class="modal-box">
+    <div class="modal-close" data-close-modal>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </div>
+    <div class="modal-eyebrow">v1.0 — Draft</div>
+    <h3>NovaChain Whitepaper</h3>
+    <p>A concept document outlining the protocol design for a fictional AI-native settlement layer. Contents:</p>
+    <div class="toc-list">
+      <div class="toc-item"><span><span class="n">01</span>Abstract &amp; Motivation</span><span>p.2</span></div>
+      <div class="toc-item"><span><span class="n">02</span>Agent-Native Architecture</span><span>p.6</span></div>
+      <div class="toc-item"><span><span class="n">03</span>Consensus &amp; Settlement Layer</span><span>p.14</span></div>
+      <div class="toc-item"><span><span class="n">04</span>Tokenomics &amp; Governance</span><span>p.22</span></div>
+      <div class="toc-item"><span><span class="n">05</span>Roadmap &amp; Ecosystem</span><span>p.29</span></div>
+    </div>
+    <p style="margin-top:20px; margin-bottom:0; font-size:13px;">This is a fictional demo project — the full document isn't published, but the outline above reflects the site's Technology and Tokenomics sections.</p>
+  </div>
+</div>
+
+<!-- Community Modal -->
+<div class="modal-overlay" id="modal-community">
+  <div class="modal-box">
+    <div class="modal-close" data-close-modal>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </div>
+    <div class="modal-eyebrow">Join Us</div>
+    <h3>Connect with NovaChain</h3>
+    <p>Pick a channel to join the community (demo links).</p>
+    <div class="modal-links">
+      <a href="#" class="modal-link-item" data-demo-link><span>Discord — 184K members</span><span class="arrow">↗</span></a>
+      <a href="#" class="modal-link-item" data-demo-link><span>X — 312K followers</span><span class="arrow">↗</span></a>
+      <a href="#" class="modal-link-item" data-demo-link><span>Telegram — 96K members</span><span class="arrow">↗</span></a>
+      <a href="#" class="modal-link-item" data-demo-link><span>GitHub — 21.8K stars</span><span class="arrow">↗</span></a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Loader ---------- */
+  window.addEventListener('load', function(){
+    setTimeout(function(){
+      document.getElementById('loader').classList.add('hidden');
+    }, 500);
+  });
+  // Fallback in case load event is slow/blocked
+  setTimeout(function(){
+    document.getElementById('loader').classList.add('hidden');
+  }, 2200);
+
+  /* ---------- Header scroll state ---------- */
+  var header = document.getElementById('site-header');
+  function onScroll(){
+    if(window.scrollY > 20){ header.classList.add('scrolled'); }
+    else{ header.classList.remove('scrolled'); }
+
+    var btt = document.getElementById('back-to-top');
+    if(window.scrollY > 600){ btt.classList.add('show'); }
+    else{ btt.classList.remove('show'); }
+  }
+  window.addEventListener('scroll', onScroll, { passive:true });
+  onScroll();
+
+  document.getElementById('back-to-top').addEventListener('click', function(){
+    window.scrollTo({ top:0, behavior: reducedMotion ? 'auto' : 'smooth' });
+  });
+
+  /* ---------- Mobile menu ---------- */
+  var menuToggle = document.getElementById('menu-toggle');
+  var navLinks = document.getElementById('nav-links');
+  menuToggle.addEventListener('click', function(){
+    menuToggle.classList.toggle('open');
+    navLinks.classList.toggle('open');
+  });
+  navLinks.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){
+      menuToggle.classList.remove('open');
+      navLinks.classList.remove('open');
+    });
+  });
+
+  /* ---------- Toast ---------- */
+  var toast = document.getElementById('toast');
+  var toastText = document.getElementById('toast-text');
+  var toastTimer;
+  function showToast(msg){
+    toastText.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 2400);
+  }
+
+  /* ---------- Modals ---------- */
+  var lastFocused = null;
+  function openModal(id){
+    var overlay = document.getElementById(id);
+    if(!overlay) return;
+    lastFocused = document.activeElement;
+    overlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    var closeBtn = overlay.querySelector('.modal-close');
+    if(closeBtn) closeBtn.focus();
+  }
+  function closeModal(overlay){
+    overlay.classList.remove('show');
+    document.body.style.overflow = '';
+    if(lastFocused) lastFocused.focus();
+  }
+  document.querySelectorAll('[data-open-modal]').forEach(function(trigger){
+    trigger.addEventListener('click', function(e){
+      e.preventDefault();
+      openModal(trigger.getAttribute('data-open-modal'));
+    });
+  });
+  document.querySelectorAll('.modal-overlay').forEach(function(overlay){
+    overlay.addEventListener('click', function(e){
+      if(e.target === overlay){ closeModal(overlay); }
+    });
+    overlay.querySelectorAll('[data-close-modal]').forEach(function(btn){
+      btn.addEventListener('click', function(){ closeModal(overlay); });
+    });
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){
+      document.querySelectorAll('.modal-overlay.show').forEach(function(overlay){
+        closeModal(overlay);
+      });
+    }
+  });
+
+  /* ---------- Demo-only links (footer placeholders, social) ---------- */
+  document.querySelectorAll('[data-demo-link]').forEach(function(link){
+    link.addEventListener('click', function(e){
+      e.preventDefault();
+      showToast('This is a demo build — no live link here yet.');
+    });
+  });
+
+  /* ---------- Cursor glow ---------- */
+  if(!reducedMotion && window.matchMedia('(min-width: 721px)').matches){
+    var glow = document.getElementById('cursor-glow');
+    window.addEventListener('mousemove', function(e){
+      glow.style.left = e.clientX + 'px';
+      glow.style.top = e.clientY + 'px';
+    }, { passive:true });
+  }
+
+  /* ---------- Scroll reveal ---------- */
+  var revealEls = document.querySelectorAll('.reveal');
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+  revealEls.forEach(function(el){ io.observe(el); });
+
+  /* ---------- Animated counters ---------- */
+  var counters = document.querySelectorAll('.metric .value');
+  var counterIO = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(!entry.isIntersecting) return;
+      var el = entry.target;
+      var target = parseFloat(el.getAttribute('data-count'));
+      var prefix = el.getAttribute('data-prefix') || '';
+      var suffix = el.getAttribute('data-suffix') || '';
+      var decimals = parseInt(el.getAttribute('data-decimal') || '0', 10);
+      var duration = 1800;
+      var startTime = null;
+
+      function tick(ts){
+        if(!startTime) startTime = ts;
+        var progress = Math.min((ts - startTime) / duration, 1);
+        var eased = 1 - Math.pow(1 - progress, 3);
+        var current = target * eased;
+        el.textContent = prefix + current.toFixed(decimals) + suffix;
+        if(progress < 1){
+          requestAnimationFrame(tick);
+        } else {
+          el.textContent = prefix + target.toFixed(decimals) + suffix;
+        }
+      }
+      requestAnimationFrame(tick);
+      counterIO.unobserve(el);
+    });
+  }, { threshold: 0.5 });
+  counters.forEach(function(el){ counterIO.observe(el); });
+
+  /* ---------- Tokenomics ring + bars ---------- */
+  var tokenSection = document.querySelector('.token-wrap');
+  var tokenAnimated = false;
+  function animateTokenomics(){
+    if(tokenAnimated) return;
+    tokenAnimated = true;
+    var circumference = 540.35;
+    var offset = 0;
+    document.querySelectorAll('.ring-seg').forEach(function(seg){
+      var pct = parseFloat(seg.getAttribute('data-pct'));
+      var len = (pct/100) * circumference;
+      var gap = circumference - len;
+      seg.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(0.16,1,0.3,1)';
+      seg.setAttribute('stroke-dasharray', len + ' ' + circumference);
+      setTimeout(function(){
+        seg.style.strokeDashoffset = -offset;
+      }, 100);
+      offset += len;
+    });
+    document.querySelectorAll('.token-bar-fill').forEach(function(bar){
+      var pct = bar.getAttribute('data-pct');
+      setTimeout(function(){
+        bar.style.width = pct + '%';
+      }, 100);
+    });
+  }
+  if(tokenSection){
+    var tokenIO = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){ animateTokenomics(); tokenIO.disconnect(); }
+      });
+    }, { threshold: 0.3 });
+    tokenIO.observe(tokenSection);
+  }
+
+  /* ---------- FAQ accordion ---------- */
+  document.querySelectorAll('.faq-item').forEach(function(item){
+    var question = item.querySelector('.faq-question');
+    var answer = item.querySelector('.faq-answer');
+    question.addEventListener('click', function(){
+      var isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(function(openItem){
+        if(openItem !== item){
+          openItem.classList.remove('open');
+          openItem.querySelector('.faq-answer').style.maxHeight = null;
+          openItem.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
+        }
+      });
+      if(isOpen){
+        item.classList.remove('open');
+        answer.style.maxHeight = null;
+        question.setAttribute('aria-expanded', 'false');
+      } else {
+        item.classList.add('open');
+        answer.style.maxHeight = answer.scrollHeight + 'px';
+        question.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  /* ---------- Card cursor-tracking glow ---------- */
+  document.querySelectorAll('.card').forEach(function(card){
+    card.addEventListener('mousemove', function(e){
+      var rect = card.getBoundingClientRect();
+      card.style.setProperty('--mx', ((e.clientX - rect.left) / rect.width * 100) + '%');
+      card.style.setProperty('--my', ((e.clientY - rect.top) / rect.height * 100) + '%');
+    });
+  });
+
+  /* ---------- Background particles ---------- */
+  var canvas = document.getElementById('particle-canvas');
+  var ctx = canvas.getContext('2d');
+  var particles = [];
+  var W, H;
+
+  function resizeParticleCanvas(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = document.documentElement.scrollHeight;
+  }
+  resizeParticleCanvas();
+
+  var particleCount = Math.min(70, Math.floor((window.innerWidth * window.innerHeight) / 22000));
+  function initParticles(){
+    particles = [];
+    for(var i=0; i<particleCount; i++){
+      particles.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.4 + 0.4,
+        vx: (Math.random() - 0.5) * 0.15,
+        vy: (Math.random() - 0.5) * 0.15,
+        o: Math.random() * 0.5 + 0.15
+      });
+    }
+  }
+  initParticles();
+
+  function drawParticles(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = 'rgba(120,160,255,0.7)';
+    for(var i=0;i<particles.length;i++){
+      var p = particles[i];
+      p.x += p.vx; p.y += p.vy;
+      if(p.x < 0) p.x = W; if(p.x > W) p.x = 0;
+      if(p.y < 0) p.y = H; if(p.y > H) p.y = 0;
+      ctx.globalAlpha = p.o;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    if(!reducedMotion){
+      requestAnimationFrame(drawParticles);
+    }
+  }
+  drawParticles();
+
+  var resizeTimeout;
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(function(){
+      resizeParticleCanvas();
+      initParticles();
+    }, 250);
+  });
+
+  /* ---------- Hero network visualization ---------- */
+  var netCanvas = document.getElementById('network-canvas');
+  var netCtx = netCanvas.getContext('2d');
+  var netW, netH, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var nodes = [];
+  var pointer = { x: null, y: null };
+
+  function resizeNetCanvas(){
+    var rect = netCanvas.parentElement.getBoundingClientRect();
+    netW = rect.width; netH = rect.height;
+    netCanvas.width = netW * dpr;
+    netCanvas.height = netH * dpr;
+    netCanvas.style.width = netW + 'px';
+    netCanvas.style.height = netH + 'px';
+    netCtx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  resizeNetCanvas();
+
+  function initNodes(){
+    nodes = [];
+    var count = 26;
+    for(var i=0;i<count;i++){
+      nodes.push({
+        x: Math.random() * netW,
+        y: Math.random() * netH,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        r: Math.random() * 2 + 1.6,
+        pulse: Math.random() * Math.PI * 2
+      });
+    }
+  }
+  initNodes();
+
+  netCanvas.addEventListener('mousemove', function(e){
+    var rect = netCanvas.getBoundingClientRect();
+    pointer.x = e.clientX - rect.left;
+    pointer.y = e.clientY - rect.top;
+  });
+  netCanvas.addEventListener('mouseleave', function(){
+    pointer.x = null; pointer.y = null;
+  });
+
+  function drawNetwork(t){
+    netCtx.clearRect(0,0,netW,netH);
+
+    for(var i=0;i<nodes.length;i++){
+      var n = nodes[i];
+      n.x += n.vx; n.y += n.vy;
+      if(n.x < 0 || n.x > netW) n.vx *= -1;
+      if(n.y < 0 || n.y > netH) n.vy *= -1;
+
+      if(pointer.x !== null){
+        var dx = pointer.x - n.x, dy = pointer.y - n.y;
+        var dist = Math.sqrt(dx*dx + dy*dy);
+        if(dist < 110){
+          n.x -= dx * 0.0035;
+          n.y -= dy * 0.0035;
+        }
+      }
+    }
+
+    // connections
+    for(var i=0;i<nodes.length;i++){
+      for(var j=i+1;j<nodes.length;j++){
+        var a = nodes[i], b = nodes[j];
+        var dx = a.x-b.x, dy = a.y-b.y;
+        var dist = Math.sqrt(dx*dx+dy*dy);
+        var maxDist = 130;
+        if(dist < maxDist){
+          var alpha = (1 - dist/maxDist) * 0.35;
+          netCtx.strokeStyle = 'rgba(100,150,255,' + alpha + ')';
+          netCtx.lineWidth = 0.8;
+          netCtx.beginPath();
+          netCtx.moveTo(a.x, a.y);
+          netCtx.lineTo(b.x, b.y);
+          netCtx.stroke();
+        }
+      }
+      if(pointer.x !== null){
+        var dx2 = nodes[i].x - pointer.x, dy2 = nodes[i].y - pointer.y;
+        var d2 = Math.sqrt(dx2*dx2+dy2*dy2);
+        if(d2 < 150){
+          netCtx.strokeStyle = 'rgba(64,224,255,' + ((1-d2/150)*0.5) + ')';
+          netCtx.lineWidth = 1;
+          netCtx.beginPath();
+          netCtx.moveTo(nodes[i].x, nodes[i].y);
+          netCtx.lineTo(pointer.x, pointer.y);
+          netCtx.stroke();
+        }
+      }
+    }
+
+    // nodes
+    for(var k=0;k<nodes.length;k++){
+      var n2 = nodes[k];
+      n2.pulse += 0.02;
+      var glowR = n2.r + Math.sin(n2.pulse) * 0.6;
+      var grad = netCtx.createRadialGradient(n2.x, n2.y, 0, n2.x, n2.y, glowR * 5);
+      grad.addColorStop(0, 'rgba(120,180,255,0.5)');
+      grad.addColorStop(1, 'rgba(120,180,255,0)');
+      netCtx.fillStyle = grad;
+      netCtx.beginPath();
+      netCtx.arc(n2.x, n2.y, glowR*5, 0, Math.PI*2);
+      netCtx.fill();
+
+      netCtx.fillStyle = 'rgba(220,235,255,0.9)';
+      netCtx.beginPath();
+      netCtx.arc(n2.x, n2.y, glowR, 0, Math.PI*2);
+      netCtx.fill();
+    }
+
+    if(!reducedMotion){
+      requestAnimationFrame(drawNetwork);
+    }
+  }
+  drawNetwork();
+
+  window.addEventListener('resize', function(){
+    clearTimeout(window.__netResizeT);
+    window.__netResizeT = setTimeout(function(){
+      resizeNetCanvas();
+      initNodes();
+    }, 250);
+  });
+
+})();
+</script>
+
+</body>
+</html>
